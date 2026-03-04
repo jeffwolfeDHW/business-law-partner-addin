@@ -1,0 +1,293 @@
+/* ============================================================
+   Business Law Partner — Outlook Add-in Styles
+   Fluent UI–aligned design for Office taskpane
+   ============================================================ */
+
+:root {
+  --office-blue: #0078d4;
+  --office-blue-hover: #106ebe;
+  --office-blue-active: #005a9e;
+  --bg-primary: #ffffff;
+  --bg-secondary: #faf9f8;
+  --bg-tertiary: #f3f2f1;
+  --text-primary: #323130;
+  --text-secondary: #605e5c;
+  --text-placeholder: #a19f9d;
+  --border-color: #edebe9;
+  --border-focus: #0078d4;
+  --success-color: #107c10;
+  --error-color: #a4262c;
+  --radius: 4px;
+  --shadow-sm: 0 1.6px 3.6px rgba(0,0,0,.13), 0 .3px .9px rgba(0,0,0,.11);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: "Segoe UI", -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 14px;
+  color: var(--text-primary);
+  background: var(--bg-primary);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+.container {
+  padding: 16px;
+  max-width: 400px;
+}
+
+/* -- Header -- */
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.header-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius);
+  background: var(--office-blue);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 16px;
+  flex-shrink: 0;
+}
+
+.header h1 {
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.subtitle {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+/* -- Sections -- */
+
+.section {
+  margin-bottom: 14px;
+}
+
+.label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 4px;
+  color: var(--text-primary);
+}
+
+.optional {
+  font-weight: 400;
+  color: var(--text-secondary);
+}
+
+.divider {
+  border: none;
+  border-top: 1px solid var(--border-color);
+  margin: 14px 0;
+}
+
+/* -- Inputs -- */
+
+.input,
+.select,
+.textarea {
+  width: 100%;
+  padding: 7px 10px;
+  font-size: 14px;
+  font-family: inherit;
+  color: var(--text-primary);
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius);
+  transition: border-color 0.15s;
+}
+
+.input:focus,
+.select:focus,
+.textarea:focus {
+  outline: none;
+  border-color: var(--border-focus);
+  box-shadow: 0 0 0 1px var(--border-focus);
+}
+
+.input::placeholder,
+.textarea::placeholder {
+  color: var(--text-placeholder);
+}
+
+.textarea {
+  resize: vertical;
+  min-height: 60px;
+}
+
+.select {
+  appearance: auto;
+  cursor: pointer;
+}
+
+.input-row {
+  display: flex;
+  gap: 8px;
+}
+
+.input-row .input {
+  flex: 1;
+}
+
+/* -- Buttons -- */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 8px 16px;
+  font-size: 14px;
+  font-family: inherit;
+  font-weight: 600;
+  border-radius: var(--radius);
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, opacity 0.15s;
+}
+
+.btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.btn-primary {
+  background: var(--office-blue);
+  color: #fff;
+  border-color: var(--office-blue);
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: var(--office-blue-hover);
+}
+
+.btn-primary:active:not(:disabled) {
+  background: var(--office-blue-active);
+}
+
+.btn-secondary {
+  background: var(--bg-primary);
+  color: var(--office-blue);
+  border-color: var(--office-blue);
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background: var(--bg-secondary);
+}
+
+.btn-small {
+  padding: 6px 12px;
+  font-size: 13px;
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+  border-color: var(--border-color);
+}
+
+.btn-small:hover:not(:disabled) {
+  background: var(--border-color);
+}
+
+.btn-full {
+  width: 100%;
+}
+
+/* -- Loading Spinner -- */
+
+.spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255,255,255,.3);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.hidden {
+  display: none !important;
+}
+
+/* -- Status -- */
+
+.status {
+  font-size: 12px;
+  margin-top: 4px;
+  min-height: 16px;
+}
+
+.status-success {
+  color: var(--success-color);
+}
+
+.status-error {
+  color: var(--error-color);
+}
+
+/* -- Messages -- */
+
+.message {
+  padding: 8px 12px;
+  border-radius: var(--radius);
+  font-size: 13px;
+  margin-bottom: 14px;
+}
+
+.message-success {
+  background: #dff6dd;
+  color: var(--success-color);
+  border: 1px solid #c8e6c9;
+}
+
+.message-error {
+  background: #fde7e9;
+  color: var(--error-color);
+  border: 1px solid #f5c6cb;
+}
+
+/* -- Preview -- */
+
+.preview {
+  min-height: 120px;
+  max-height: 300px;
+  overflow-y: auto;
+  padding: 12px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius);
+  font-size: 13px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
+.preview.has-content {
+  background: #fff;
+  border-color: var(--office-blue);
+}
+
+.placeholder-text {
+  color: var(--text-placeholder);
+  font-style: italic;
+}

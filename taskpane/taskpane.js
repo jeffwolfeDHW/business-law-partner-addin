@@ -55,6 +55,7 @@ function getBusinessDaysLater(numDays) {
 // ── State ──
 
 let generatedDraft = "";
+let _inMemoryApiKey = "";  // Fallback when localStorage is blocked
 
 // ── Initialize when Office is ready ──
 
@@ -81,11 +82,14 @@ function initializeUI() {
 // ── API Key Management ──
 
 function getApiKey() {
+  // Try localStorage first, fall back to in-memory
   try {
-    return localStorage.getItem("blp_claude_api_key") || "";
+    var stored = localStorage.getItem("blp_claude_api_key");
+    if (stored) return stored;
   } catch (e) {
-    return "";
+    // localStorage blocked — expected in Outlook WebView
   }
+  return _inMemoryApiKey || "";
 }
 
 function saveApiKey() {
@@ -102,14 +106,19 @@ function saveApiKey() {
     return;
   }
 
+  // Always store in memory
+  _inMemoryApiKey = key;
+
+  // Also try localStorage (may fail in Outlook WebView)
   try {
     localStorage.setItem("blp_claude_api_key", key);
-    input.value = "";
-    showKeyStatus("API key saved", "success");
-    collapseApiKeySection();
   } catch (e) {
-    showKeyStatus("Failed to save key", "error");
+    // Silently continue — in-memory key is sufficient
   }
+
+  input.value = "";
+  showKeyStatus("API key saved", "success");
+  collapseApiKeySection();
 }
 
 function showKeyStatus(message, type) {

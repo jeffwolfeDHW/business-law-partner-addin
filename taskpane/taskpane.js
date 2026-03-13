@@ -13,6 +13,7 @@ JEFF'S WRITING STYLE — match this closely:
 - Greeting: Use the recipient's first name only, followed by a comma (e.g., "Miranda," or "John,"). Never use "Dear" or "Hi". If you cannot determine the first name, skip the greeting.
 - Lead with the point: Get to the substance immediately. No preamble like "Thank you for reaching out" or "I hope this finds you well" unless the situation calls for warmth (e.g., acknowledging someone's patience).
 - Be direct and honest: If something is outside scope or uncertain, say so plainly. Jeff writes things like "This isn't my area of expertise" rather than hedging.
+- Brevity is paramount: Keep replies as short as possible while still being complete. Avoid filler, throat-clearing, and unnecessary background.
 - Structure matches complexity: For simple replies, keep it to a few sentences. For complex analysis, use clear headers and organized sections. Let the content dictate the format.
 - Practical and actionable: Always provide concrete next steps, options, or resources. End with an offer to help further when appropriate (e.g., "If helpful, I can draft three versions of this clause" or "Let me know if you'd like to discuss").
 - Tone: Warm but efficient. Professional without being stiff. Like a trusted colleague at the next desk.
@@ -30,10 +31,10 @@ The draft should:
 
 const RESPONSE_TYPES = {
   confirmation: "CONFIRMATION_PLACEHOLDER",
-  substantive: "Read the client's email carefully and identify every question, issue, and concern raised. Draft a thorough, substantive response that addresses each point with clear legal reasoning, practical guidance, and actionable next steps. Research and apply relevant legal principles. Use the tone and approach of a trusted business law partner — professional but conversational, structured but not overly formal. Where appropriate, flag risks, outline options with pros/cons, and recommend a course of action. If certain points require further information from the client, note what's needed and why.",
-  contract_feedback: "Review the contract terms referenced or attached in this email. Provide a substantive analysis that: (1) summarizes the key terms and their practical effect, (2) flags any provisions that are concerning, unusual, or one-sided, (3) identifies missing protections or standard clauses that should be included, (4) suggests specific redline language or modifications where appropriate, and (5) highlights any provisions that need further negotiation. Organize your feedback by section or topic for easy reference. If the email references an attachment you cannot access, note this and work with whatever contract language is quoted or described in the email body.",
-  entity_formation: "The client is asking about forming a business entity. Based on the information in their email, provide guidance on the appropriate entity type and formation steps. If the client hasn't specified, ask clarifying questions about: number of owners/members, desired liability protection, tax treatment preferences, and whether they anticipate outside investment. For now, provide a helpful preliminary response acknowledging their inquiry and outlining the key considerations — detailed template responses for specific entity types (single-member LLC, multi-member LLC, startup corporation, etc.) will be developed separately.",
-  general: "Draft a professional reply addressing the key points in this email. Keep the tone helpful and clear. Address any questions or action items raised by the client."
+  substantive: "Read the email and identify every question and concern. Draft a brief, substantive reply that addresses each point with clear legal reasoning and actionable next steps. Keep it as short as possible — 2-5 sentences per point. Flag risks and recommend a course of action without over-explaining.",
+  contract_feedback: "Review the contract terms referenced in this email. Flag only the most important concerns — provisions that are unusual, one-sided, or missing. Suggest specific fixes in 1-2 sentences each. Skip routine terms that are market-standard. Keep the overall reply concise.",
+  entity_formation: "Give a brief entity formation recommendation. State the recommended entity type and the top 2-3 reasons why. If the client needs to provide more info before you can advise, say so in one sentence. Don't explain every entity type — just the recommended one.",
+  general: "Draft a brief, professional reply addressing the key points in this email. Keep it to 2-5 sentences unless the complexity truly demands more. Get to the point immediately."
 };
 
 // ── Date helper for Confirmation replies ──
@@ -235,7 +236,7 @@ async function callClaudeAPI(userPrompt) {
     },
     body: JSON.stringify({
       model: "claude-sonnet-4-5-20250929",
-      max_tokens: 2048,
+      max_tokens: 1024,
       system: SYSTEM_PROMPT,
       messages: [
         {

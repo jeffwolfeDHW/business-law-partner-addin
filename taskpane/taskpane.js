@@ -221,6 +221,10 @@ async function callClaudeAPI(userPrompt) {
     throw new Error("No API key configured. Please enter your Claude API key above.");
   }
 
+  // Debug: show key info so we can verify it's being retrieved
+  var keyPreview = apiKey.substring(0, 10) + "..." + apiKey.substring(apiKey.length - 4);
+  console.log("Using API key: " + keyPreview + " (length: " + apiKey.length + ")");
+
   var response = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
     headers: {
@@ -250,7 +254,8 @@ async function callClaudeAPI(userPrompt) {
       throw new Error("API request failed with status " + response.status);
     }
     var errorMsg = (errorData.error && errorData.error.message) ? errorData.error.message : "Unknown API error";
-    throw new Error(errorMsg);
+    // Include key preview and status in error for debugging
+    throw new Error("Status " + response.status + ": " + errorMsg + " [key: " + keyPreview + ", len: " + apiKey.length + "]");
   }
 
   var data = await response.json();

@@ -3,55 +3,63 @@
    Core logic: Office.js integration + Claude API
    ============================================================ */
 
-// ── System prompt (adapted from ChatGPT Business Law Partner GPT) ──
+// ── System prompt (incorporating all legal skills) ──
 
-const SYSTEM_PROMPT = `You are drafting email replies on behalf of Jeff Wolfe, a business law partner at DHW Legal. Your role is to assist with business law matters including entity formation, contract drafting and review, fundraising transactions, and M&A (mergers and acquisitions).
+const SYSTEM_PROMPT = `You are Jeff Wolfe's legal drafting assistant at DHW Legal. You draft email replies on Jeff's behalf — ready to send with minimal editing.
 
-Always maintain confidentiality, neutrality, and professionalism. Avoid speculative legal advice and instead focus on identifying relevant legal considerations, outlining potential options, and providing practical guidance. Do not offer legal conclusions or replace the judgment of a qualified attorney.
+## Writing Rules (Non-Negotiable)
 
-JEFF'S WRITING STYLE — match this closely:
-- Greeting: Use the recipient's first name only, followed by a comma (e.g., "Miranda," or "John,"). Never use "Dear" or "Hi". If you cannot determine the first name, skip the greeting.
-- Lead with the point: Get to the substance immediately. No preamble like "Thank you for reaching out" or "I hope this finds you well" unless the situation calls for warmth (e.g., acknowledging someone's patience).
-- Be direct and honest: If something is outside scope or uncertain, say so plainly. Jeff writes things like "This isn't my area of expertise" rather than hedging.
-- Brevity is paramount: Keep replies as short as possible while still being complete. Avoid filler, throat-clearing, and unnecessary background.
-- Structure matches complexity: For simple replies, keep it to a few sentences. For complex analysis, use clear headers and organized sections. Let the content dictate the format.
-- Practical and actionable: Always provide concrete next steps, options, or resources. End with an offer to help further when appropriate (e.g., "If helpful, I can draft three versions of this clause" or "Let me know if you'd like to discuss").
-- Tone: Warm but efficient. Professional without being stiff. Like a trusted colleague at the next desk.
-- Sign-off: Use "Jeff" for brief/casual replies, or "Regards,\\nJeff" for more formal ones. Never use "Best regards," "Sincerely," or "Warm regards."
-- Keep it tight: Jeff does not over-explain. If two sentences will do, don't write four.
+1. LEAD WITH THE ANSWER. The first sentence should tell the recipient what they need to know. Busy clients read the first paragraph and sometimes nothing else.
+2. BE BRIEF. Most replies should be 150-300 words. If you need more than 500, something is wrong.
+3. USE JEFF'S VOICE: Direct, practical, conversational but professional. First-name greetings ("Hi Mike,"). No "Dear" unless the incoming email uses it. Sign off as "Jeff" — no "Best regards" or "Sincerely" unless the context demands formality.
+4. NO LEGAL FILLER. Never use "please be advised," "enclosed herewith," "pursuant to," or "as per." Write like a smart lawyer talks, not like a form letter.
+5. SPECIFIC NEXT STEPS. End with who needs to do what by when. "Let me know if you have questions" is NOT a next step. "Send me the executed signature pages by Friday and I'll handle the filing" IS a next step.
+6. DON'T HEDGE INTO MEANINGLESSNESS. If the answer is probably yes, say "I think this works, subject to [specific caveat]" — not three paragraphs of equivocation.
+7. MATCH THE EMAIL'S FORMALITY. If the incoming email is casual, reply casually. If it's formal (engagement letter, opinion request), match that tone.
+8. NO SUBJECT LINE. This is a reply — the subject already exists.
 
-The draft should:
-- Be ready to send with minimal editing
-- Address all substantive points raised
-- Include appropriate legal caveats where needed
-- NOT include a subject line (this is a reply)
-- NOT include an email signature block (Jeff's Outlook adds this automatically)`;
+## Legal Expertise You Bring to Every Response
+
+**Contract Analysis**: When an email discusses contract terms, identify provisions that actually matter and explain WHY they're a problem, not just THAT they're a problem. Rate issues by severity (critical = dealbreaker, high = worth negotiating hard, medium = push if you have leverage, low = minor drafting point). When suggesting changes, give specific counter-language the recipient can use, not vague descriptions.
+
+**Deal Strategy**: For M&A, fundraising, and entity formation questions, focus on practical implications — tax treatment, liability exposure, governance flexibility. Flag the 2-3 things that will actually matter for this specific situation rather than listing every possible consideration.
+
+**Due Diligence**: When emails involve DD findings or document review, synthesize across issues to identify patterns. What's missing is often more important than what's there. Flag gaps and risks with clear severity ratings: Green (clean), Yellow (manageable), Red (deal issue).
+
+**Client Communication**: Every email should be clear and actionable. If you're covering a document (redline, memo, agreement), summarize the 3-5 key points — don't re-argue everything. If there's bad news, say it plainly — clients hate surprises more than bad news.
+
+**Transaction Support**: For closing logistics, be comprehensive about deliverables, conditions, and deadlines. Missing a single closing item can delay a deal.
+
+## What NOT to Do
+- Don't CC opposing counsel without flagging it
+- Don't include specific deal terms in the email body if they shouldn't be forwarded
+- Don't contradict prior legal analysis without flagging the discrepancy
+- Don't give legal conclusions — frame as analysis and recommendations
+- Don't over-explain things the recipient (usually another lawyer or a sophisticated client) already knows`;
 
 // ── Response type instructions ──
 
 const RESPONSE_TYPES = {
-  confirmation: "CONFIRMATION_PLACEHOLDER",
-  substantive: "Read the email and identify every question and concern. Draft a brief, substantive reply that addresses each point with clear legal reasoning and actionable next steps. Keep it as short as possible — 2-5 sentences per point. Flag risks and recommend a course of action without over-explaining.",
-  contract_feedback: "Review the contract terms referenced in this email. Flag only the most important concerns — provisions that are unusual, one-sided, or missing. Suggest specific fixes in 1-2 sentences each. Skip routine terms that are market-standard. Keep the overall reply concise.",
-  entity_formation: "Give a brief entity formation recommendation. State the recommended entity type and the top 2-3 reasons why. If the client needs to provide more info before you can advise, say so in one sentence. Don't explain every entity type — just the recommended one.",
-  general: "Draft a brief, professional reply addressing the key points in this email. Keep it to 2-5 sentences unless the complexity truly demands more. Get to the point immediately."
+  general: "Draft a concise, professional reply addressing the key points. Lead with the bottom line, then brief reasoning. Specific next steps at the end.",
+
+  substantive: "Draft a reply providing substantive legal analysis. Structure: (1) bottom-line answer in the first sentence, (2) key reasoning in 2-3 short paragraphs, (3) any caveats or risks flagged clearly, (4) specific recommended next steps with deadlines where possible.",
+
+  contract_feedback: "Draft a reply providing feedback on the contract terms discussed. For each issue: state the problem, explain WHY it matters (financial exposure, operational risk, etc.), and propose specific counter-language or a negotiation position. Prioritize by severity — lead with the critical and high items. If the terms are generally acceptable, say so and focus only on what needs to change.",
+
+  deal_structure: "Draft a reply advising on deal structure. Focus on the 2-3 structural decisions that will matter most for this specific situation. Address tax implications, liability exposure, and governance requirements concisely. If recommending a specific structure, explain the key advantage over alternatives in one sentence.",
+
+  entity_formation: "Draft a reply advising on entity selection and formation. Recommend a specific entity type (LLC, C-Corp, S-Corp, LP) with a clear one-sentence rationale. Cover: liability protection, tax treatment, governance flexibility, and fundraising implications. Flag any state-specific considerations.",
+
+  m_and_a: "Draft a reply providing M&A strategy guidance. Address the most important items first: valuation approach, key deal structure decisions, critical due diligence priorities, and timeline expectations. Flag any deal-breaker risks or conditions that need resolution before proceeding.",
+
+  fundraising: "Draft a reply advising on fundraising mechanics. Recommend instrument type (SAFE, convertible note, priced round) with brief rationale. Address key terms (valuation cap, discount, pro rata rights, MFN) and flag any investor-side concerns. Keep it practical — the client needs to know what to propose and what to push back on.",
+
+  due_diligence: "Draft a reply summarizing due diligence findings or requesting additional DD materials. Organize by category (corporate, cap table, contracts, IP, employment, litigation, regulatory). For each finding, rate severity (Green/Yellow/Red) and state the deal impact. List missing items — what's not in the data room is often more important than what is.",
+
+  closing_logistics: "Draft a reply addressing closing mechanics — deliverables, conditions, timelines, and responsibility assignments. Be comprehensive and specific. List what's done, what's outstanding, and who needs to do what by when. Flag any conditions that may not be satisfiable on the current timeline.",
+
+  confirmation: "Draft a brief 2-3 sentence confirmation reply. Acknowledge the key point, confirm any action items, and state the next step. Nothing more."
 };
-
-// ── Date helper for Confirmation replies ──
-
-function getBusinessDaysLater(numDays) {
-  var date = new Date();
-  var added = 0;
-  while (added < numDays) {
-    date.setDate(date.getDate() + 1);
-    var day = date.getDay();
-    if (day !== 0 && day !== 6) {
-      added++;
-    }
-  }
-  var options = { weekday: "long", year: "numeric", month: "long", day: "numeric" };
-  return date.toLocaleDateString("en-US", options);
-}
 
 // ── State ──
 
@@ -89,13 +97,17 @@ function getApiKey() {
     var saved = roaming.get("blp_claude_api_key");
     if (saved) return saved;
   } catch (e) {}
+
   // Fall back to localStorage
   try {
     var stored = localStorage.getItem("blp_claude_api_key");
     if (stored) return stored;
-  } catch (e) {}
+  } catch (e) {
+    // localStorage blocked — expected in Outlook WebView
+  }
   return _inMemoryApiKey || "";
 }
+
 function saveApiKey() {
   var input = document.getElementById("apiKeyInput");
   var key = input.value.trim();
@@ -113,24 +125,31 @@ function saveApiKey() {
   // Always store in memory
   _inMemoryApiKey = key;
 
-  // Save to roamingSettings (persists across Outlook restarts)
+  // Try roamingSettings first (persists across Outlook restarts)
   try {
     var roaming = Office.context.roamingSettings;
     roaming.set("blp_claude_api_key", key);
-    roaming.saveAsync(function(result) {
-      if (result.status !== Office.AsyncResultStatus.Succeeded) {
-        console.log("roamingSettings save failed");
+    roaming.saveAsync(function (result) {
+      if (result.status === Office.AsyncResultStatus.Succeeded) {
+        console.log("API key saved to roamingSettings");
       }
     });
   } catch (e) {
-    // Fall back to localStorage
-    try { localStorage.setItem("blp_claude_api_key", key); } catch (e2) {}
+    console.log("roamingSettings not available: " + e.message);
+  }
+
+  // Also try localStorage as fallback
+  try {
+    localStorage.setItem("blp_claude_api_key", key);
+  } catch (e) {
+    // Silently continue — in-memory key is sufficient
   }
 
   input.value = "";
   showKeyStatus("API key saved", "success");
   collapseApiKeySection();
 }
+
 function showKeyStatus(message, type) {
   var el = document.getElementById("keyStatus");
   el.textContent = message;
@@ -152,19 +171,17 @@ function getEmailContext() {
       // Get subject
       var subject = item.subject || "(no subject)";
 
+      // Get sender info
+      var from = "";
+      if (item.from) {
+        from = item.from.displayName || item.from.emailAddress || "";
+      }
+
       // Get recipients
       var toRecipients = [];
       if (item.to && item.to.length) {
         for (var i = 0; i < item.to.length; i++) {
           toRecipients.push(item.to[i].emailAddress || item.to[i].displayName);
-        }
-      }
-
-      // Check for attachments
-      var attachmentNames = [];
-      if (item.attachments && item.attachments.length) {
-        for (var j = 0; j < item.attachments.length; j++) {
-          attachmentNames.push(item.attachments[j].name);
         }
       }
 
@@ -180,9 +197,9 @@ function getEmailContext() {
 
           resolve({
             subject: subject,
+            from: from,
             to: toRecipients.join(", "),
-            body: body,
-            attachments: attachmentNames
+            body: body
           });
         } else {
           reject(new Error("Could not read email body: " + (result.error ? result.error.message : "Unknown error")));
@@ -197,30 +214,22 @@ function getEmailContext() {
 // ── Claude API ──
 
 function buildUserPrompt(emailContext, responseType, customInstructions) {
+  var typeInstruction = RESPONSE_TYPES[responseType] || RESPONSE_TYPES.general;
+
   var prompt = "I need to reply to the following email.\n\n";
   prompt += "Subject: " + emailContext.subject + "\n";
-  prompt += "To: " + emailContext.to + "\n";
-  if (emailContext.attachments && emailContext.attachments.length > 0) {
-    prompt += "Attachments: " + emailContext.attachments.join(", ") + "\n";
-    prompt += "(Note: I can see the attachment filenames but cannot read their contents directly. Work with whatever contract language or details are quoted or described in the email body.)\n";
+  if (emailContext.from) {
+    prompt += "From: " + emailContext.from + "\n";
   }
-  prompt += "\nEmail content:\n---\n" + emailContext.body + "\n---\n\n";
-
-  // Handle Confirmation type with calculated follow-up date
-  if (responseType === "confirmation") {
-    var followUpDate = getBusinessDaysLater(3);
-    var typeInstruction = "Draft a brief, professional confirmation of receipt. Acknowledge the client's email and its general subject matter (without getting into substantive analysis). Let them know you are reviewing the matter and will provide a substantive response by " + followUpDate + ". Keep the tone warm but professional — this is a holding response, not a substantive one. Do not attempt to answer any legal questions or provide analysis. If the email mentions urgency or a deadline, acknowledge that as well.";
-    prompt += "Task: " + typeInstruction + "\n";
-  } else {
-    var typeInstruction = RESPONSE_TYPES[responseType] || RESPONSE_TYPES.general;
-    prompt += "Task: " + typeInstruction + "\n";
-  }
+  prompt += "To: " + emailContext.to + "\n\n";
+  prompt += "Email content:\n---\n" + emailContext.body + "\n---\n\n";
+  prompt += "Task: " + typeInstruction + "\n";
 
   if (customInstructions && customInstructions.trim()) {
     prompt += "\nAdditional instructions: " + customInstructions.trim() + "\n";
   }
 
-  prompt += "\nPlease draft the reply email body only (no subject line).";
+  prompt += "\nDraft the reply email body only (no subject line). Be concise.";
 
   return prompt;
 }
@@ -231,7 +240,6 @@ async function callClaudeAPI(userPrompt) {
     throw new Error("No API key configured. Please enter your Claude API key above.");
   }
 
-  // Debug: show key info so we can verify it's being retrieved
   var keyPreview = apiKey.substring(0, 10) + "..." + apiKey.substring(apiKey.length - 4);
   console.log("Using API key: " + keyPreview + " (length: " + apiKey.length + ")");
 
@@ -264,7 +272,6 @@ async function callClaudeAPI(userPrompt) {
       throw new Error("API request failed with status " + response.status);
     }
     var errorMsg = (errorData.error && errorData.error.message) ? errorData.error.message : "Unknown API error";
-    // Include key preview and status in error for debugging
     throw new Error("Status " + response.status + ": " + errorMsg + " [key: " + keyPreview + ", len: " + apiKey.length + "]");
   }
 
@@ -333,16 +340,13 @@ function handleInsert() {
   try {
     var item = Office.context.mailbox.item;
 
-    // Convert plain text to HTML that matches Outlook's default compose style
-    // Use <br> for line breaks and <br><br> for paragraph breaks (single-spaced)
+    // Convert plain text to HTML matching Outlook's default compose formatting
     var htmlDraft = generatedDraft
       .replace(/&/g, "&amp;")
       .replace(/</g, "&lt;")
       .replace(/>/g, "&gt;")
       .replace(/\n\n/g, "<br><br>")
       .replace(/\n/g, "<br>");
-
-    // Wrap in a div with Outlook-matching font style (inherits from compose window)
     htmlDraft = '<div style="font-family: Calibri, sans-serif; font-size: 11pt; margin: 0; padding: 0;">' + htmlDraft + '</div><br>';
 
     // Prepend draft to existing body (keeps the quoted reply thread)
@@ -361,6 +365,402 @@ function handleInsert() {
     showMessage("Insert failed: " + e.message, "error");
   }
 }
+
+// ── UI Helpers ──
+
+function displayPreview(text) {
+  var previewArea = document.getElementById("previewArea");
+  previewArea.textContent = text;
+  previewArea.classList.add("has-content");
+}
+
+function showMessage(text, type) {
+  var el = document.getElementById("messageArea");
+  el.textContent = text;
+  el.className = "message message-" + type;
+  el.classList.remove("hidden");
+
+  if (type === "success") {
+    setTimeout(function () {
+      el.classList.add("hidden");
+    }, 4000);
+  }
+}
+
+function hideMessage() {
+  var el = document.getElementById("messageArea");
+  el.classList.add("hidden");
+}
+/* ============================================================
+   Business Law Partner — Outlook Add-in
+   Core logic: Office.js integration + Claude API
+   ============================================================ */
+
+// ── System prompt (incorporating all legal skills) ──
+
+const SYSTEM_PROMPT = `You are Jeff Wolfe's legal drafting assistant at DHW Legal. You draft email replies on Jeff's behalf — ready to send with minimal editing.
+
+## Writing Rules (Non-Negotiable)
+
+1. LEAD WITH THE ANSWER. The first sentence should tell the recipient what they need to know. Busy clients read the first paragraph and sometimes nothing else.
+2. BE BRIEF. Most replies should be 150-300 words. If you need more than 500, something is wrong.
+3. USE JEFF'S VOICE: Direct, practical, conversational but professional. First-name greetings ("Hi Mike,"). No "Dear" unless the incoming email uses it. Sign off as "Jeff" — no "Best regards" or "Sincerely" unless the context demands formality.
+4. NO LEGAL FILLER. Never use "please be advised," "enclosed herewith," "pursuant to," or "as per." Write like a smart lawyer talks, not like a form letter.
+5. SPECIFIC NEXT STEPS. End with who needs to do what by when. "Let me know if you have questions" is NOT a next step. "Send me the executed signature pages by Friday and I'll handle the filing" IS a next step.
+6. DON'T HEDGE INTO MEANINGLESSNESS. If the answer is probably yes, say "I think this works, subject to [specific caveat]" — not three paragraphs of equivocation.
+7. MATCH THE EMAIL'S FORMALITY. If the incoming email is casual, reply casually. If it's formal (engagement letter, opinion request), match that tone.
+8. NO SUBJECT LINE. This is a reply — the subject already exists.
+
+## Legal Expertise You Bring to Every Response
+
+**Contract Analysis**: When an email discusses contract terms, identify provisions that actually matter and explain WHY they're a problem, not just THAT they're a problem. Rate issues by severity (critical = dealbreaker, high = worth negotiating hard, medium = push if you have leverage, low = minor drafting point). When suggesting changes, give specific counter-language the recipient can use, not vague descriptions.
+
+**Deal Strategy**: For M&A, fundraising, and entity formation questions, focus on practical implications — tax treatment, liability exposure, governance flexibility. Flag the 2-3 things that will actually matter for this specific situation rather than listing every possible consideration.
+
+**Due Diligence**: When emails involve DD findings or document review, synthesize across issues to identify patterns. What's missing is often more important than what's there. Flag gaps and risks with clear severity ratings: Green (clean), Yellow (manageable), Red (deal issue).
+
+**Client Communication**: Every email should be clear and actionable. If you're covering a document (redline, memo, agreement), summarize the 3-5 key points — don't re-argue everything. If there's bad news, say it plainly — clients hate surprises more than bad news.
+
+**Transaction Support**: For closing logistics, be comprehensive about deliverables, conditions, and deadlines. Missing a single closing item can delay a deal.
+
+## What NOT to Do
+- Don't CC opposing counsel without flagging it
+- Don't include specific deal terms in the email body if they shouldn't be forwarded
+- Don't contradict prior legal analysis without flagging the discrepancy
+- Don't give legal conclusions — frame as analysis and recommendations
+- Don't over-explain things the recipient (usually another lawyer or a sophisticated client) already knows`;
+
+// ── Response type instructions ──
+
+const RESPONSE_TYPES = {
+  general: "Draft a concise, professional reply addressing the key points. Lead with the bottom line, then brief reasoning. Specific next steps at the end.",
+
+  substantive: "Draft a reply providing substantive legal analysis. Structure: (1) bottom-line answer in the first sentence, (2) key reasoning in 2-3 short paragraphs, (3) any caveats or risks flagged clearly, (4) specific recommended next steps with deadlines where possible.",
+
+  contract_feedback: "Draft a reply providing feedback on the contract terms discussed. For each issue: state the problem, explain WHY it matters (financial exposure, operational risk, etc.), and propose specific counter-language or a negotiation position. Prioritize by severity — lead with the critical and high items. If the terms are generally acceptable, say so and focus only on what needs to change.",
+
+  deal_structure: "Draft a reply advising on deal structure. Focus on the 2-3 structural decisions that will matter most for this specific situation. Address tax implications, liability exposure, and governance requirements concisely. If recommending a specific structure, explain the key advantage over alternatives in one sentence.",
+
+  entity_formation: "Draft a reply advising on entity selection and formation. Recommend a specific entity type (LLC, C-Corp, S-Corp, LP) with a clear one-sentence rationale. Cover: liability protection, tax treatment, governance flexibility, and fundraising implications. Flag any state-specific considerations.",
+
+  m_and_a: "Draft a reply providing M&A strategy guidance. Address the most important items first: valuation approach, key deal structure decisions, critical due diligence priorities, and timeline expectations. Flag any deal-breaker risks or conditions that need resolution before proceeding.",
+
+  fundraising: "Draft a reply advising on fundraising mechanics. Recommend instrument type (SAFE, convertible note, priced round) with brief rationale. Address key terms (valuation cap, discount, pro rata rights, MFN) and flag any investor-side concerns. Keep it practical — the client needs to know what to propose and what to push back on.",
+
+  due_diligence: "Draft a reply summarizing due diligence findings or requesting additional DD materials. Organize by category (corporate, cap table, contracts, IP, employment, litigation, regulatory). For each finding, rate severity (Green/Yellow/Red) and state the deal impact. List missing items — what's not in the data room is often more important than what is.",
+
+  closing_logistics: "Draft a reply addressing closing mechanics — deliverables, conditions, timelines, and responsibility assignments. Be comprehensive and specific. List what's done, what's outstanding, and who needs to do what by when. Flag any conditions that may not be satisfiable on the current timeline.",
+
+  confirmation: "Draft a brief 2-3 sentence confirmation reply. Acknowledge the key point, confirm any action items, and state the next step. Nothing more."
+};
+
+// ── State ──
+
+let generatedDraft = "";
+let _inMemoryApiKey = "";  // Fallback when localStorage is blocked
+
+// ── Initialize when Office is ready ──
+
+Office.onReady(function (info) {
+  if (info.host === Office.HostType.Outlook) {
+    initializeUI();
+  }
+});
+
+function initializeUI() {
+  // Load saved API key status
+  const savedKey = getApiKey();
+  if (savedKey) {
+    showKeyStatus("API key configured", "success");
+    collapseApiKeySection();
+  }
+
+  // Event listeners
+  document.getElementById("saveKeyBtn").addEventListener("click", saveApiKey);
+  document.getElementById("generateBtn").addEventListener("click", handleGenerate);
+  document.getElementById("insertBtn").addEventListener("click", handleInsert);
+}
+
+// ── API Key Management ──
+
+function getApiKey() {
+  // Try roamingSettings first (persists across Outlook restarts)
+  try {
+    var roaming = Office.context.roamingSettings;
+    var saved = roaming.get("blp_claude_api_key");
+    if (saved) return saved;
+  } catch (e) {}
+
+  // Fall back to localStorage
+  try {
+    var stored = localStorage.getItem("blp_claude_api_key");
+    if (stored) return stored;
+  } catch (e) {
+    // localStorage blocked — expected in Outlook WebView
+  }
+  return _inMemoryApiKey || "";
+}
+
+function saveApiKey() {
+  var input = document.getElementById("apiKeyInput");
+  var key = input.value.trim();
+
+  if (!key) {
+    showKeyStatus("Please enter an API key", "error");
+    return;
+  }
+
+  if (!key.startsWith("sk-ant-")) {
+    showKeyStatus("Key should start with sk-ant-...", "error");
+    return;
+  }
+
+  // Always store in memory
+  _inMemoryApiKey = key;
+
+  // Try roamingSettings first (persists across Outlook restarts)
+  try {
+    var roaming = Office.context.roamingSettings;
+    roaming.set("blp_claude_api_key", key);
+    roaming.saveAsync(function (result) {
+      if (result.status === Office.AsyncResultStatus.Succeeded) {
+        console.log("API key saved to roamingSettings");
+      }
+    });
+  } catch (e) {
+    console.log("roamingSettings not available: " + e.message);
+  }
+
+  // Also try localStorage as fallback
+  try {
+    localStorage.setItem("blp_claude_api_key", key);
+  } catch (e) {
+    // Silently continue — in-memory key is sufficient
+  }
+
+  input.value = "";
+  showKeyStatus("API key saved", "success");
+  collapseApiKeySection();
+}
+
+function showKeyStatus(message, type) {
+  var el = document.getElementById("keyStatus");
+  el.textContent = message;
+  el.className = "status status-" + type;
+}
+
+function collapseApiKeySection() {
+  var input = document.getElementById("apiKeyInput");
+  input.placeholder = "Key saved — enter new key to replace";
+}
+
+// ── Email Context Retrieval ──
+
+function getEmailContext() {
+  return new Promise(function (resolve, reject) {
+    try {
+      var item = Office.context.mailbox.item;
+
+      // Get subject
+      var subject = item.subject || "(no subject)";
+
+      // Get sender info
+      var from = "";
+      if (item.from) {
+        from = item.from.displayName || item.from.emailAddress || "";
+      }
+
+      // Get recipients
+      var toRecipients = [];
+      if (item.to && item.to.length) {
+        for (var i = 0; i < item.to.length; i++) {
+          toRecipients.push(item.to[i].emailAddress || item.to[i].displayName);
+        }
+      }
+
+      // Get body (async)
+      item.body.getAsync(Office.CoercionType.Text, function (result) {
+        if (result.status === Office.AsyncResultStatus.Succeeded) {
+          var body = result.value || "";
+
+          // Truncate very long bodies to stay within token limits
+          if (body.length > 10000) {
+            body = body.substring(0, 10000) + "\n\n[... email truncated for length ...]";
+          }
+
+          resolve({
+            subject: subject,
+            from: from,
+            to: toRecipients.join(", "),
+            body: body
+          });
+        } else {
+          reject(new Error("Could not read email body: " + (result.error ? result.error.message : "Unknown error")));
+        }
+      });
+    } catch (e) {
+      reject(new Error("Could not access email: " + e.message));
+    }
+  });
+}
+
+// ── Claude API ──
+
+function buildUserPrompt(emailContext, responseType, customInstructions) {
+  var typeInstruction = RESPONSE_TYPES[responseType] || RESPONSE_TYPES.general;
+
+  var prompt = "I need to reply to the following email.\n\n";
+  prompt += "Subject: " + emailContext.subject + "\n";
+  if (emailContext.from) {
+    prompt += "From: " + emailContext.from + "\n";
+  }
+  prompt += "To: " + emailContext.to + "\n\n";
+  prompt += "Email content:\n---\n" + emailContext.body + "\n---\n\n";
+  prompt += "Task: " + typeInstruction + "\n";
+
+  if (customInstructions && customInstructions.trim()) {
+    prompt += "\nAdditional instructions: " + customInstructions.trim() + "\n";
+  }
+
+  prompt += "\nDraft the reply email body only (no subject line). Be concise.";
+
+  return prompt;
+}
+
+async function callClaudeAPI(userPrompt) {
+  var apiKey = getApiKey();
+  if (!apiKey) {
+    throw new Error("No API key configured. Please enter your Claude API key above.");
+  }
+
+  var keyPreview = apiKey.substring(0, 10) + "..." + apiKey.substring(apiKey.length - 4);
+  console.log("Using API key: " + keyPreview + " (length: " + apiKey.length + ")");
+
+  var response = await fetch("https://api.anthropic.com/v1/messages", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "x-api-key": apiKey,
+      "anthropic-version": "2023-06-01",
+      "anthropic-dangerous-direct-browser-access": "true"
+    },
+    body: JSON.stringify({
+      model: "claude-sonnet-4-5-20250929",
+      max_tokens: 1024,
+      system: SYSTEM_PROMPT,
+      messages: [
+        {
+          role: "user",
+          content: userPrompt
+        }
+      ]
+    })
+  });
+
+  if (!response.ok) {
+    var errorData;
+    try {
+      errorData = await response.json();
+    } catch (e) {
+      throw new Error("API request failed with status " + response.status);
+    }
+    var errorMsg = (errorData.error && errorData.error.message) ? errorData.error.message : "Unknown API error";
+    throw new Error("Status " + response.status + ": " + errorMsg + " [key: " + keyPreview + ", len: " + apiKey.length + "]");
+  }
+
+  var data = await response.json();
+
+  if (data.content && data.content.length > 0 && data.content[0].text) {
+    return data.content[0].text;
+  }
+
+  throw new Error("Unexpected API response format");
+}
+
+// ── Generate Handler ──
+
+async function handleGenerate() {
+  var generateBtn = document.getElementById("generateBtn");
+  var generateText = document.getElementById("generateText");
+  var spinner = document.getElementById("loadingSpinner");
+  var insertBtn = document.getElementById("insertBtn");
+
+  // Disable button, show spinner
+  generateBtn.disabled = true;
+  generateText.textContent = "Generating...";
+  spinner.classList.remove("hidden");
+  hideMessage();
+
+  try {
+    // Get email context
+    var emailContext = await getEmailContext();
+
+    // Get selected options
+    var responseType = document.getElementById("responseType").value;
+    var customInstructions = document.getElementById("customInstructions").value;
+
+    // Build prompt and call API
+    var userPrompt = buildUserPrompt(emailContext, responseType, customInstructions);
+    var draft = await callClaudeAPI(userPrompt);
+
+    // Display preview
+    generatedDraft = draft;
+    displayPreview(draft);
+
+    // Enable insert button
+    insertBtn.disabled = false;
+
+    showMessage("Draft generated successfully", "success");
+  } catch (error) {
+    showMessage(error.message, "error");
+    generatedDraft = "";
+    insertBtn.disabled = true;
+  } finally {
+    generateBtn.disabled = false;
+    generateText.textContent = "Generate Draft";
+    spinner.classList.add("hidden");
+  }
+}
+
+// ── Insert into Email ──
+
+function handleInsert() {
+  if (!generatedDraft) {
+    showMessage("No draft to insert", "error");
+    return;
+  }
+
+  try {
+    var item = Office.context.mailbox.item;
+
+    // Convert plain text to HTML matching Outlook's default compose formatting
+    var htmlDraft = generatedDraft
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/\n\n/g, "<br><br>")
+      .replace(/\n/g, "<br>");
+    htmlDraft = '<div style="font-family: Calibri, sans-serif; font-size: 11pt; margin: 0; padding: 0;">' + htmlDraft + '</div><br>';
+
+    // Prepend draft to existing body (keeps the quoted reply thread)
+    item.body.prependAsync(
+      htmlDraft,
+      { coercionType: Office.CoercionType.Html },
+      function (result) {
+        if (result.status === Office.AsyncResultStatus.Succeeded) {
+          showMessage("Draft inserted into email", "success");
+        } else {
+          showMessage("Failed to insert: " + (result.error ? result.error.message : "Unknown error"), "error");
+        }
+      }
+    );
+  } catch (e) {
+    showMessage("Insert failed: " + e.message, "error");
+  }
+}
+
+// ── UI Helpers ──
+
 function displayPreview(text) {
   var previewArea = document.getElementById("previewArea");
   previewArea.textContent = text;

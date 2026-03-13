@@ -1,14 +1,14 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Business Law Partner</title>
-  <link rel="stylesheet" href="taskpane.css"/>
-  <script src="https://appsforoffice.microsoft.com/lib/1/hosted/office.js"></script>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Business Law Partner</title>
+    <link rel="stylesheet" href="taskpane.css"/>
+    <script src="https://appsforoffice.microsoft.com/lib/1/hosted/office.js"></script>
 </head>
 <body>
-  <div class="container">
+    <div class="container">
 
     <!-- Header -->
     <div class="header">
@@ -76,92 +76,11 @@
 
     <!-- Insert Button -->
     <div class="section">
-      <button id="insertBtn" class="btn btn-secondary btn-full" disabled>Insert into Email</button>
+        <button id="insertBtn" class="btn btn-secondary btn-full" disabled>Insert into Email</button>
     </div>
 
-  </div>
-
-  <script src="taskpane.js"></script>
-</body>
-</html>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Business Law Partner</title>
-  <link rel="stylesheet" href="taskpane.css"/>
-  <script src="https://appsforoffice.microsoft.com/lib/1/hosted/office.js"></script>
-</head>
-<body>
-  <div class="container">
-
-    <!-- Header -->
-    <div class="header">
-      <div class="header-icon">LP</div>
-      <div>
-        <h1>Law Partner</h1>
-        <p class="subtitle">AI-Powered Draft Assistant</p>
-      </div>
     </div>
 
-    <!-- API Key Section -->
-    <div class="section" id="apiKeySection">
-      <label class="label" for="apiKeyInput">Claude API Key</label>
-      <div class="input-row">
-        <input type="password" id="apiKeyInput" class="input" placeholder="sk-ant-..."/>
-        <button id="saveKeyBtn" class="btn btn-small">Save</button>
-      </div>
-      <div id="keyStatus" class="status"></div>
-    </div>
-
-    <hr class="divider"/>
-
-    <!-- Response Type -->
-    <div class="section">
-      <label class="label" for="responseType">Response Type</label>
-      <select id="responseType" class="select">
-        <option value="confirmation">Confirmation</option>
-        <option value="substantive">Substantive Response</option>
-        <option value="contract_feedback">Contract Feedback</option>
-        <option value="entity_formation">Entity Formation</option>
-        <option value="general">General Reply</option>
-      </select>
-    </div>
-
-    <!-- Additional Instructions -->
-    <div class="section">
-      <label class="label" for="customInstructions">Additional Instructions <span class="optional">(optional)</span></label>
-      <textarea id="customInstructions" class="textarea" rows="3"
-                placeholder="e.g., Focus on indemnification terms, keep it under 200 words..."></textarea>
-    </div>
-
-    <!-- Generate Button -->
-    <div class="section">
-      <button id="generateBtn" class="btn btn-primary btn-full">
-        <span id="generateText">Generate Draft</span>
-        <span id="loadingSpinner" class="spinner hidden"></span>
-      </button>
-    </div>
-
-    <!-- Message Area -->
-    <div id="messageArea" class="message hidden"></div>
-
-    <!-- Preview -->
-    <div class="section" id="previewSection">
-      <label class="label">Draft Preview</label>
-      <div id="previewArea" class="preview">
-        <p class="placeholder-text">Generated draft will appear here...</p>
-      </div>
-    </div>
-
-    <!-- Insert Button -->
-    <div class="section">
-      <button id="insertBtn" class="btn btn-secondary btn-full" disabled>Insert into Email</button>
-    </div>
-
-  </div>
-
-  <script src="taskpane.js"></script>
+    <script src="taskpane.js"></script>
 </body>
 </html>

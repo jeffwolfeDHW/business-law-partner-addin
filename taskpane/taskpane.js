@@ -83,16 +83,19 @@ function initializeUI() {
 // ── API Key Management ──
 
 function getApiKey() {
-  // Try localStorage first, fall back to in-memory
+  // Try roamingSettings first (persists across Outlook restarts)
+  try {
+    var roaming = Office.context.roamingSettings;
+    var saved = roaming.get("blp_claude_api_key");
+    if (saved) return saved;
+  } catch (e) {}
+  // Fall back to localStorage
   try {
     var stored = localStorage.getItem("blp_claude_api_key");
     if (stored) return stored;
-  } catch (e) {
-    // localStorage blocked — expected in Outlook WebView
-  }
+  } catch (e) {}
   return _inMemoryApiKey || "";
 }
-
 function saveApiKey() {
   var input = document.getElementById("apiKeyInput");
   var key = input.value.trim();
@@ -110,18 +113,24 @@ function saveApiKey() {
   // Always store in memory
   _inMemoryApiKey = key;
 
-  // Also try localStorage (may fail in Outlook WebView)
+  // Save to roamingSettings (persists across Outlook restarts)
   try {
-    localStorage.setItem("blp_claude_api_key", key);
+    var roaming = Office.context.roamingSettings;
+    roaming.set("blp_claude_api_key", key);
+    roaming.saveAsync(function(result) {
+      if (result.status !== Office.AsyncResultStatus.Succeeded) {
+        console.log("roamingSettings save failed");
+      }
+    });
   } catch (e) {
-    // Silently continue — in-memory key is sufficient
+    // Fall back to localStorage
+    try { localStorage.setItem("blp_claude_api_key", key); } catch (e2) {}
   }
 
   input.value = "";
   showKeyStatus("API key saved", "success");
   collapseApiKeySection();
 }
-
 function showKeyStatus(message, type) {
   var el = document.getElementById("keyStatus");
   el.textContent = message;

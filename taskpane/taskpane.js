@@ -333,14 +333,17 @@ function handleInsert() {
   try {
     var item = Office.context.mailbox.item;
 
-    // Convert plain text to simple HTML (preserve line breaks)
+    // Convert plain text to HTML that matches Outlook's default compose style
+    // Use <br> for line breaks and <br><br> for paragraph breaks (single-spaced)
     var htmlDraft = generatedDraft
       .replace(/&/g, "&amp;")
       .replace(/</g, "&lt;")
       .replace(/>/g, "&gt;")
-      .replace(/\n\n/g, "</p><p>")
-      .replace(/\n/g, "<br/>");
-    htmlDraft = "<p>" + htmlDraft + "</p>";
+      .replace(/\n\n/g, "<br><br>")
+      .replace(/\n/g, "<br>");
+
+    // Wrap in a div with Outlook-matching font style (inherits from compose window)
+    htmlDraft = '<div style="font-family: Calibri, sans-serif; font-size: 11pt; margin: 0; padding: 0;">' + htmlDraft + '</div><br>';
 
     // Prepend draft to existing body (keeps the quoted reply thread)
     item.body.prependAsync(
@@ -358,9 +361,6 @@ function handleInsert() {
     showMessage("Insert failed: " + e.message, "error");
   }
 }
-
-// ── UI Helpers ──
-
 function displayPreview(text) {
   var previewArea = document.getElementById("previewArea");
   previewArea.textContent = text;

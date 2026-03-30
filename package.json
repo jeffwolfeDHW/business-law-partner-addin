@@ -1,7 +1,7 @@
 {
   "name": "business-law-partner-addin",
-  "version": "1.0.0",
-  "description": "AI-powered legal email drafting assistant for Outlook",
+  "version": "2.0.0",
+  "description": "AI-powered legal email drafting assistant for Outlook — powered by OpenAI Responses API",
   "private": true,
   "devDependencies": {
     "office-addin-debugging": "^5.0.0",

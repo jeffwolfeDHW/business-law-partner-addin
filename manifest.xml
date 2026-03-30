@@ -7,17 +7,17 @@
   xsi:type="MailApp">
 
   <Id>a1b2c3d4-e5f6-7890-abcd-ef1234567890</Id>
-  <Version>1.0.0.0</Version>
+  <Version>2.0.0.0</Version>
   <ProviderName>DHW Legal</ProviderName>
   <DefaultLocale>en-US</DefaultLocale>
   <DisplayName DefaultValue="Business Law Partner"/>
-  <Description DefaultValue="AI-powered legal email drafting assistant for business law matters. Generates professional draft replies using Claude AI."/>
+  <Description DefaultValue="AI-powered legal email drafting assistant for business law matters. Generates professional draft replies using OpenAI GPT-4o."/>
   <IconUrl DefaultValue="https://jeffwolfedhw.github.io/business-law-partner-addin/icons/icon-32.png"/>
   <HighResolutionIconUrl DefaultValue="https://jeffwolfedhw.github.io/business-law-partner-addin/icons/icon-80.png"/>
   <SupportUrl DefaultValue="https://jeffwolfedhw.github.io/business-law-partner-addin"/>
 
   <AppDomains>
-    <AppDomain>https://api.anthropic.com</AppDomain>
+    <AppDomain>https://api.openai.com</AppDomain>
   </AppDomains>
 
   <Hosts>
